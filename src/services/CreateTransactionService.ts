@@ -1,6 +1,12 @@
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import Transaction from '../models/Transaction';
 
+interface TransactionDTO {
+  title: string;
+  value: number;
+  type: 'income' | 'outcome';
+}
+
 class CreateTransactionService {
   private transactionsRepository: TransactionsRepository;
 
@@ -8,8 +14,24 @@ class CreateTransactionService {
     this.transactionsRepository = transactionsRepository;
   }
 
-  public execute(): Transaction {
-    // TODO
+  public execute({ title, value, type }: TransactionDTO): Transaction {
+    if (type !== 'income' && type !== 'outcome') {
+      throw Error('Type invalid!');
+    }
+
+    if (type === 'outcome') {
+      const balance = this.transactionsRepository.getBalance().total - value;
+      if (balance < 0) {
+        throw Error('The balance will be negative');
+      }
+    }
+    const transaction = this.transactionsRepository.create({
+      title,
+      value,
+      type,
+    });
+
+    return transaction;
   }
 }
 
